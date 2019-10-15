@@ -80,5 +80,3 @@ void BM_Find(benchmark::State &state)
 
 BENCHMARK_TEMPLATE(BM_Find, ReferenceSolution);
 BENCHMARK_TEMPLATE(BM_Find, MySolution);
-
-BENCHMARK_MAIN();
