@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <boost/make_unique.hpp>
+#include <boost/core/ignore_unused.hpp>
 
 #include <benchmark/benchmark.h>
 
@@ -48,10 +49,14 @@ struct ByteTableSolution
 {
     static constexpr uint32_t Count (uint32_t n) noexcept
     {
-        return g_byteTable[n & 0xFF] +
-            g_byteTable[(n >>= 8) & 0xFF] +
-            g_byteTable[(n >>= 8) & 0xFF] +
-            g_byteTable[(n >> 8) & 0xFF];
+        uint32_t res = 0;
+
+        res += g_byteTable[n & 0xFF];
+        res += g_byteTable[(n >>= 8) & 0xFF];
+        res += g_byteTable[(n >>= 8) & 0xFF];
+        res += g_byteTable[(n >> 8) & 0xFF];
+
+        return res;
     }
 
 private:
@@ -62,13 +67,17 @@ struct ElevenBitsTableSolution
 {
     static constexpr uint32_t Count (uint32_t n) noexcept
     {
-        return g_byteTable[n & 0b11111111111] +
-            g_byteTable[(n >> 11) & 0b11111111111] +
-            g_byteTable[(n >> 22)];
+        uint32_t res = 0;
+
+        res += g_byteTable[n & 0b11111111111];
+        res += g_byteTable[(n >>= 11) & 0b11111111111];
+        res += g_byteTable[(n >> 11)];
+
+        return res;
     }
 
 private:
-    constexpr static auto g_byteTable = CountTable<1 << 11>();
+    inline const static auto g_byteTable = CountTable<2048>();
 };
 
 struct WordsTableSolution
@@ -80,7 +89,7 @@ struct WordsTableSolution
     }
 
 private:
-    constexpr static auto g_byteTable = CountTable<1 << 16>();
+    inline const static auto g_byteTable = CountTable<65536>();
 };
 
 struct FullTableSolution
@@ -88,10 +97,10 @@ struct FullTableSolution
 private:
     static auto CountFullTable() 
     {
-        auto table = boost::make_unique_noinit<uint32_t[]> (1l << 32);
+        auto table = boost::make_unique_noinit<uint32_t[]> (1ull << 32);
 
         std::array<std::future<void>, 4> workers;
-        constexpr auto batch = (1l << 32)/workers.size();
+        const auto batch = (1ull << 32)/workers.size();
         for (size_t ii = 0; ii < workers.size(); ++ii)
             workers[ii] = std::async (std::launch::async, [&table, start = ii*batch, finish = (ii + 1)*batch]()
                 {
@@ -115,9 +124,9 @@ public:
     }
 };
 
-auto GenerateNUmbers()
+auto GenerateNumbers()
 {
-    std::array<uint32_t, 10000> res;
+    std::array<uint32_t, 100000> res;
 
     std::mt19937 gen(42);
     std::uniform_int_distribution<uint32_t> dist(0, std::numeric_limits<uint32_t>::max());
@@ -132,12 +141,12 @@ auto GenerateNUmbers()
 template <class Solution>
 void BM_Count (benchmark::State &state)
 {
-    const auto nums = GenerateNUmbers();
+    const auto nums = GenerateNumbers();
     Solution::Count (42); // Heatup table
 
-    size_t curr = 0;
     for (auto _ : state)
     {
+        boost::ignore_unused (_);
         for (auto num : nums)
             benchmark::DoNotOptimize (Solution::Count (num));
         state.SetItemsProcessed (state.items_processed() + nums.size());
@@ -174,11 +183,11 @@ BENCHMARK_TEMPLATE(BM_Count, FullTableSolution)->Threads (8);
 
 void BM_CountCheck (benchmark::State &state)
 {
-    const auto nums = GenerateNUmbers();
+    const auto nums = GenerateNumbers();
 
-    size_t curr = 0;
     for (auto _ : state)
     {
+        boost::ignore_unused (_);
         for (auto num : nums)
         {
             const auto etalon = ReferenceSolution::Count (num);

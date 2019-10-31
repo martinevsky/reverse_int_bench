@@ -6,7 +6,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED on)
 
 message("Build type: ${CMAKE_BUILD_TYPE}")
 
-find_package (Boost REQUIRED COMPONENTS system)
+find_package (Boost REQUIRED)
 
 link_libraries (${Boost_LIBRARIES})
 include_directories (${Boost_INCLUDE_DIRS}) 
