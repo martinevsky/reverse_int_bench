@@ -36,6 +36,17 @@ struct AsmSolution
     }
 };
 
+struct MagicSolution
+{
+    __attribute__((always_inline))
+    static constexpr uint32_t Count (uint32_t v) noexcept
+    {
+        v = v - ((v >> 1) & 0x55555555);
+        v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+        return static_cast<uint16_t> ((((v + (v >> 4)) & 0xf0f0f0f) * 0x1010101) >> 24);
+    }
+};
+
 template <size_t TableSize>
 constexpr static auto CountTable() noexcept
 {
@@ -155,6 +166,7 @@ void BM_Count (benchmark::State &state)
 
 BENCHMARK_TEMPLATE(BM_Count, ReferenceSolution);
 BENCHMARK_TEMPLATE(BM_Count, AsmSolution);
+BENCHMARK_TEMPLATE(BM_Count, MagicSolution);
 BENCHMARK_TEMPLATE(BM_Count, ByteTableSolution);
 BENCHMARK_TEMPLATE(BM_Count, ElevenBitsTableSolution);
 BENCHMARK_TEMPLATE(BM_Count, WordsTableSolution);
@@ -162,6 +174,7 @@ BENCHMARK_TEMPLATE(BM_Count, FullTableSolution);
 
 BENCHMARK_TEMPLATE(BM_Count, ReferenceSolution)->Threads (2);
 BENCHMARK_TEMPLATE(BM_Count, AsmSolution)->Threads (2);
+BENCHMARK_TEMPLATE(BM_Count, MagicSolution)->Threads (2);
 BENCHMARK_TEMPLATE(BM_Count, ByteTableSolution)->Threads (2);
 BENCHMARK_TEMPLATE(BM_Count, ElevenBitsTableSolution)->Threads (2);
 BENCHMARK_TEMPLATE(BM_Count, WordsTableSolution)->Threads (2);
@@ -169,6 +182,7 @@ BENCHMARK_TEMPLATE(BM_Count, FullTableSolution)->Threads (2);
 
 BENCHMARK_TEMPLATE(BM_Count, ReferenceSolution)->Threads (4);
 BENCHMARK_TEMPLATE(BM_Count, AsmSolution)->Threads (4);
+BENCHMARK_TEMPLATE(BM_Count, MagicSolution)->Threads (4);
 BENCHMARK_TEMPLATE(BM_Count, ByteTableSolution)->Threads (4);
 BENCHMARK_TEMPLATE(BM_Count, ElevenBitsTableSolution)->Threads (4);
 BENCHMARK_TEMPLATE(BM_Count, WordsTableSolution)->Threads (4);
@@ -176,6 +190,7 @@ BENCHMARK_TEMPLATE(BM_Count, FullTableSolution)->Threads (4);
 
 BENCHMARK_TEMPLATE(BM_Count, ReferenceSolution)->Threads (8);
 BENCHMARK_TEMPLATE(BM_Count, AsmSolution)->Threads (8);
+BENCHMARK_TEMPLATE(BM_Count, MagicSolution)->Threads (8);
 BENCHMARK_TEMPLATE(BM_Count, ByteTableSolution)->Threads (8);
 BENCHMARK_TEMPLATE(BM_Count, ElevenBitsTableSolution)->Threads (8);
 BENCHMARK_TEMPLATE(BM_Count, WordsTableSolution)->Threads (8);
@@ -197,6 +212,7 @@ void BM_CountCheck (benchmark::State &state)
                     ByteTableSolution::Count (num),
                     ElevenBitsTableSolution::Count (num),
                     WordsTableSolution::Count (num),
+                    MagicSolution::Count (num),
                     FullTableSolution::Count (num)
                 };
 
