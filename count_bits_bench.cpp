@@ -27,6 +27,7 @@ struct ReferenceSolution
     }
 };
 
+#pragma GCC target("popcnt") 
 struct AsmSolution
 {
     __attribute__((always_inline))
