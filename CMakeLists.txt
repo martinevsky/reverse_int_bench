@@ -23,7 +23,8 @@ link_libraries (benchmark)
 add_executable (reverse_int_bench 
 	main.cpp
 	reverse_int_bench.cpp 
-	count_bits_bench.cpp
+    count_bits_bench.cpp
+    by_value_bench.cpp    
 )
 
 #Testing
